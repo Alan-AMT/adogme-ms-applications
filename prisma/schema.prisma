@@ -14,10 +14,14 @@ datasource db {
 }
 
 model Application {
-  id        String            @id @unique
-  dogId     String            @unique
-  userId    String            @unique
-  status    ApplicationStatus
+  id                String            @id @unique
+  dogId             String
+  applicantId       String
+  shelterId         String
+  status            ApplicationStatus
+  shelterComments   String?           @db.Text
+  applicantComments String?           @db.Text
+
   createdAt DateTime
   updatedAt DateTime
 
@@ -28,6 +32,23 @@ enum ApplicationStatus {
   pending
   approved
   rejected
+
+  @@schema("applications_service")
+}
+
+model Applicant {
+  id         String  @id @unique
+  userId     String  @unique
+  userName   String
+  address    String
+  postalCode String
+  phone      String?
+  email      String?
+  avatarUrl  String?
+  vector     Float[]
+
+  createdAt DateTime
+  updatedAt DateTime
 
   @@schema("applications_service")
 }
