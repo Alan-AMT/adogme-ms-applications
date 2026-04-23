@@ -3,10 +3,6 @@ import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-valid
 export class CreateApplicantDto {
     @IsString()
     @IsNotEmpty()
-    userId: string;
-
-    @IsString()
-    @IsNotEmpty()
     userName: string;
 
     @IsString()

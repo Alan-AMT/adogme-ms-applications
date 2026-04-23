@@ -6,7 +6,7 @@ import { ApplicationsService } from './application/applications.service.js';
 
 @Controller('applications-ms')
 @UsePipes(new ValidationPipe({ transform: true }))
-export class AppController {
+export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
   
   // @UseGuards(UserAuthorizationGuard)

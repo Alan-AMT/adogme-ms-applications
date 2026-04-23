@@ -13,22 +13,44 @@ export class PrismaApplicantsRepository implements ApplicantsRepository {
         try {
             await this.prisma.applicant.create({
                 data: {
-                    id: applicant.id,
-                    userId: applicant.userId,
-                    userName: applicant.userName,
-                    address: applicant.address,
-                    postalCode: applicant.postalCode,
-                    phone: applicant.phone,
-                    email: applicant.email,
-                    avatarUrl: applicant.avatarUrl,
-                    vector: applicant.vector,
-                    createdAt: applicant.createdAt,
-                    updatedAt: applicant.updatedAt,
+                    ...applicant
                 }
             });
         } catch (error) {
             this.logger.error(`Failed to create Applicant in database: ${error.message}`, error.stack);
             throw new InternalServerErrorException('An error occurred while creating the applicant');
+        }
+    }
+
+    async findById(id: string): Promise<Applicant | null> {
+        try {
+            const raw = await this.prisma.applicant.findUnique({
+                where: { id }
+            });
+            
+            if (!raw) return null;
+
+            return Applicant.create({
+                ...raw
+            });
+        } catch (error) {
+            this.logger.error(`Failed to find Applicant by id in database: ${error.message}`, error.stack);
+            throw new InternalServerErrorException('An error occurred while fetching the applicant');
+        }
+    }
+
+    async update(applicant: Applicant): Promise<void> {
+        try {
+            const {userId, createdAt, ...rest} = applicant;
+            await this.prisma.applicant.update({
+                where: { id: applicant.id },
+                data: {
+                    ...rest
+                }
+            });
+        } catch (error) {
+            this.logger.error(`Failed to update Applicant in database: ${error.message}`, error.stack);
+            throw new InternalServerErrorException('An error occurred while updating the applicant');
         }
     }
 }

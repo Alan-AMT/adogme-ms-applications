@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller.js';
+import { ApplicationsController } from './applications.controller.js';
 import { PrismaService } from './infrastructure/prisma/prisma.service.js';
-import { ApplicantsController } from './application/applicants.controller.js';
+import { ApplicantsController } from './applicants.controller.js';
 import { ApplicantsService } from './application/applicants.service.js';
 import { ApplicantsRepository } from './domain/applicants.repository.js';
 import { PrismaApplicantsRepository } from './infrastructure/prisma/applicants.repository.prisma.js';
@@ -12,7 +12,7 @@ import { PrismaApplicationsRepository } from './infrastructure/prisma/applicatio
 
 @Module({
   imports: [ConfigModule.forRoot()],
-  controllers: [AppController, ApplicantsController],
+  controllers: [ApplicationsController, ApplicantsController],
   providers: [
     PrismaService,
     ApplicationsService,
