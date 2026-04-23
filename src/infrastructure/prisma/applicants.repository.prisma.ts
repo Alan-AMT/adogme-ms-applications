@@ -39,6 +39,23 @@ export class PrismaApplicantsRepository implements ApplicantsRepository {
         }
     }
 
+    async findByUserId(userId: string): Promise<Applicant | null> {
+        try {
+            const raw = await this.prisma.applicant.findUnique({
+                where: { userId } // userId is @unique in schema.prisma!
+            });
+            
+            if (!raw) return null;
+
+            return Applicant.create({
+                ...raw
+            });
+        } catch (error) {
+            this.logger.error(`Failed to find Applicant by userId in database: ${error.message}`, error.stack);
+            throw new InternalServerErrorException('An error occurred while fetching the applicant');
+        }
+    }
+
     async update(applicant: Applicant): Promise<void> {
         try {
             const {userId, createdAt, ...rest} = applicant;

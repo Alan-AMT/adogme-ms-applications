@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, Param, HttpCode, HttpStatus, Logger, ValidationPipe, UsePipes, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Put, Param, HttpCode, HttpStatus, Logger, ValidationPipe, UsePipes, UseGuards, Get } from '@nestjs/common';
 import { ApplicantsService } from './application/applicants.service.js';
 import { CreateApplicantDto } from './application/create-applicant.dto.js';
 import { UpdateApplicantDto } from './application/update-applicant.dto.js';
@@ -29,5 +29,17 @@ export class ApplicantsController {
         @Body() dto: UpdateApplicantDto
     ): Promise<Applicant> {
         return await this.applicantsService.updateApplicant(applicantId, userId, dto);
+    }
+
+    @UseGuards(UserAuthorizationGuard)
+    @Get('applicant/me')
+    async getApplicantByUserId(@User('sub') userId: string): Promise<Applicant> {
+        return await this.applicantsService.getApplicantByUserId(userId);
+    }
+
+    @UseGuards(UserAuthorizationGuard)
+    @Get('applicant/:id')
+    async getApplicantById(@Param('id') applicantId: string): Promise<Applicant> {
+        return await this.applicantsService.getApplicantById(applicantId);
     }
 }

@@ -75,4 +75,36 @@ export class ApplicantsService {
             throw new InternalServerErrorException('Failed to process applicant update');
         }
     }
+
+    async getApplicantById(applicantId: string): Promise<Applicant> {
+        try {
+            const applicant = await this.repository.findById(applicantId);
+            if (!applicant) {
+                throw new NotFoundException(`Applicant with ID ${applicantId} not found`);
+            }
+            return applicant;
+        } catch (error) {
+            this.logger.error(`Failed to get applicant by id: ${error.message}`, error.stack);
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Failed to fetch applicant');
+        }
+    }
+
+    async getApplicantByUserId(userId: string): Promise<Applicant> {
+        try {
+            const applicant = await this.repository.findByUserId(userId);
+            if (!applicant) {
+                throw new NotFoundException(`Applicant for user ${userId} not found`);
+            }
+            return applicant;
+        } catch (error) {
+            this.logger.error(`Failed to get applicant by user id: ${error.message}`, error.stack);
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Failed to fetch applicant');
+        }
+    }
 }
