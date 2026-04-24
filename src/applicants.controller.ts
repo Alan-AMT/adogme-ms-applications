@@ -32,12 +32,14 @@ export class ApplicantsController {
     }
 
     @UseGuards(UserAuthorizationGuard)
+    @Roles('applicant')
     @Get('applicant/me')
     async getApplicantByUserId(@User('sub') userId: string): Promise<Applicant> {
         return await this.applicantsService.getApplicantByUserId(userId);
     }
 
     @UseGuards(UserAuthorizationGuard)
+    @Roles('applicant', 'shelter')
     @Get('applicant/:id')
     async getApplicantById(@Param('id') applicantId: string): Promise<Applicant> {
         return await this.applicantsService.getApplicantById(applicantId);
