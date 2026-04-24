@@ -45,6 +45,13 @@ jobs:
         service: ${{ env.SERVICE_NAME }}
         region: ${{ env.REGION }}
         image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+        startupProbe:
+          timeoutSeconds: 240     # Max 240s for a single probe
+          periodSeconds: 240      # Time between probes
+          failureThreshold: 3     # Number of retries
+          initialDelaySeconds: 10 # Delay before first probe
+          tcpSocket:
+            port: 8080
         # Aquí mapeas el secreto de GCP a la variable que espera NestJS
         secrets: |
           DATABASE_URL=MS_APPLICATIONS_DATABASE_URL:latest
