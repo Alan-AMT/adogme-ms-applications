@@ -1,7 +1,8 @@
-import { Body, Controller, Post, Put, Param, HttpCode, HttpStatus, Logger, ValidationPipe, UsePipes, UseGuards, Get } from '@nestjs/common';
+import { Body, Controller, Post, Put, Patch, Param, HttpCode, HttpStatus, Logger, ValidationPipe, UsePipes, UseGuards, Get, ForbiddenException } from '@nestjs/common';
 import { ApplicantsService } from './application/applicants.service.js';
 import { CreateApplicantDto } from './application/create-applicant.dto.js';
 import { UpdateApplicantDto } from './application/update-applicant.dto.js';
+import { UpdateVectorDto } from './application/update-vector.dto.js';
 import { Applicant } from 'src/domain/applicant.entity.js';
 import { User } from './infrastructure/security/user.decorator.js';
 import { UserAuthorizationGuard } from './infrastructure/security/user.authorization.guard.js';
@@ -43,5 +44,19 @@ export class ApplicantsController {
     @Get('applicant/:id')
     async getApplicantById(@Param('id') applicantId: string): Promise<Applicant> {
         return await this.applicantsService.getApplicantById(applicantId);
+    }
+
+    @UseGuards(UserAuthorizationGuard)
+    @Roles('applicant')
+    @Patch('user/:userId/vector')
+    async updateVector(
+        @Param('userId') paramUserId: string,
+        @User('sub') tokenUserId: string,
+        @Body() dto: UpdateVectorDto
+    ): Promise<Applicant> {
+        if (paramUserId !== tokenUserId) {
+            throw new ForbiddenException('You do not have permission to update this applicant vector');
+        }
+        return await this.applicantsService.updateVector(paramUserId, dto.vector);
     }
 }

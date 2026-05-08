@@ -107,4 +107,30 @@ export class ApplicantsService {
             throw new InternalServerErrorException('Failed to fetch applicant');
         }
     }
+
+    async updateVector(userId: string, vector: number[]): Promise<Applicant> {
+        try {
+            const applicant = await this.repository.findByUserId(userId);
+            
+            if (!applicant) {
+                throw new NotFoundException(`Applicant for user ${userId} not found`);
+            }
+
+            const updatedApplicant = Applicant.create({
+                ...applicant,
+                vector,
+                updatedAt: new Date(),
+            });
+
+            await this.repository.update(updatedApplicant);
+
+            return updatedApplicant;
+        } catch (error) {
+            this.logger.error(`Failed to update applicant vector: ${error.message}`, error.stack);
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Failed to process vector update');
+        }
+    }
 }
