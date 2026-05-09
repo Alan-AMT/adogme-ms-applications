@@ -108,4 +108,21 @@ export class ApplicationsService {
         
         this.logger.debug(`Successfully updated status to ${updateDto.status} for application with ID: ${id}`);
     }
+
+    async getMostRecentFormData(applicantId: string): Promise<any> {
+        this.logger.log(`Fetching most recent application data for applicant: ${applicantId}`);
+        const application = await this.repository.findMostRecentByApplicantId(applicantId);
+        
+        if (!application) {
+            this.logger.warn(`No applications found for applicant ID: ${applicantId}`);
+            throw new NotFoundException(`No applications found for applicant ID: ${applicantId}`);
+        }
+
+        if (application.applicantId !== applicantId) {
+            this.logger.warn(`Applicant ${applicantId} is not authorized to get form data from application ${application.id}`);
+            throw new ForbiddenException(`You are not authorized to get this application`);
+        }
+
+        return application.formData;
+    }
 }

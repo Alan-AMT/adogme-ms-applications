@@ -49,4 +49,12 @@ export class ApplicationsController {
     this.logger.log(`PATCH request received to update status for application with ID: ${id}`);
     await this.applicationsService.updateApplicationStatus(id, updateDto);
   }
+
+  @UseGuards(UserAuthorizationGuard)
+  @Roles("applicant")
+  @Get('recent/:applicantId')
+  async getRecentFormData(@Param('applicantId', ParseUUIDPipe) applicantId: string): Promise<any> {
+    this.logger.log(`GET request received to retrieve recent form data for applicant: ${applicantId}`);
+    return await this.applicationsService.getMostRecentFormData(applicantId);
+  }
 }

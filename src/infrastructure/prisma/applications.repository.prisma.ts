@@ -92,4 +92,34 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
             },
         });
     }
+
+    async findMostRecentByApplicantId(applicantId: string): Promise<Application | null> {
+        const application = await this.prisma.application.findFirst({
+            where: { applicantId },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        if (!application) {
+            return null;
+        }
+
+        return Application.create({
+            id: application.id,
+            applicantId: application.applicantId,
+            dogId: application.dogId,
+            shelterId: application.shelterId,
+            dogName: application.dogName,
+            dogBreed: application.dogBreed,
+            dogImage: application.dogImage,
+            shelterName: application.shelterName,
+            shelterLogo: application.shelterLogo,
+            formData: application.formData,
+            formVersion: application.formVersion,
+            status: application.status as ApplicationStatus,
+            compatibilityScore: application.compatibilityScore,
+            reviews: [],
+            createdAt: application.createdAt,
+            updatedAt: application.updatedAt,
+        });
+    }
 }
