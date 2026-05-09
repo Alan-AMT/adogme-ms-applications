@@ -11,7 +11,7 @@ export class ApplicationsService {
 
     constructor(private readonly repository: ApplicationsRepository) {}
     
-    async createApplication(createApplicationDto: CreateApplicationDto): Promise<string> {
+    async createApplication(createApplicationDto: CreateApplicationDto): Promise<Application> {
         const date = new Date();
         const application = Application.create({
             id: uuidv4(),
@@ -35,7 +35,7 @@ export class ApplicationsService {
 
         await this.repository.create(application);
 
-        return application.id;
+        return application;
     }
 
     async getApplicationById(id: string): Promise<Application> {

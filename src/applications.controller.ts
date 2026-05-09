@@ -17,7 +17,7 @@ export class ApplicationsController {
   
   @Roles("applicant")
   @Post()
-  async create(@Body() createApplicationDto: CreateApplicationDto): Promise<string> {
+  async create(@Body() createApplicationDto: CreateApplicationDto): Promise<Application> {
     return this.applicationsService.createApplication(createApplicationDto);
   }
 
