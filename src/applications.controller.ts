@@ -9,19 +9,18 @@ import { GetApplicationsQueryDto } from './application/get-applications-query.dt
 
 @Controller('applications-ms')
 @UsePipes(new ValidationPipe({ transform: true }))
+@UseGuards(UserAuthorizationGuard)
 export class ApplicationsController {
   private readonly logger = new Logger(ApplicationsController.name);
 
   constructor(private readonly applicationsService: ApplicationsService) {}
   
-  @UseGuards(UserAuthorizationGuard)
   @Roles("applicant")
   @Post()
   async create(@Body() createApplicationDto: CreateApplicationDto): Promise<string> {
     return this.applicationsService.createApplication(createApplicationDto);
   }
 
-  @UseGuards(UserAuthorizationGuard)
   @Roles("applicant", "shelter")
   @Get(':id')
   async getById(@Param('id', ParseUUIDPipe) id: string): Promise<Application> {
@@ -29,7 +28,6 @@ export class ApplicationsController {
     return this.applicationsService.getApplicationById(id);
   }
 
-  @UseGuards(UserAuthorizationGuard)
   @Roles("applicant")
   @Delete(':id')
   async cancel(
@@ -40,7 +38,6 @@ export class ApplicationsController {
     await this.applicationsService.cancelApplication(id, applicantId);
   }
 
-  @UseGuards(UserAuthorizationGuard)
   @Roles("shelter")
   @Patch(':id/status')
   async updateStatus(
@@ -51,15 +48,13 @@ export class ApplicationsController {
     await this.applicationsService.updateApplicationStatus(id, updateDto);
   }
 
-  @UseGuards(UserAuthorizationGuard)
   @Roles("applicant")
-  @Get('recent/:applicantId')
+  @Get('applicant/:applicantId/recent')
   async getRecentFormData(@Param('applicantId', ParseUUIDPipe) applicantId: string): Promise<any> {
     this.logger.log(`GET request received to retrieve recent form data for applicant: ${applicantId}`);
     return this.applicationsService.getMostRecentFormData(applicantId);
   }
 
-  @UseGuards(UserAuthorizationGuard)
   @Roles("applicant")
   @Get('applicant/:applicantId')
   async getApplicationsByApplicant(
@@ -70,7 +65,6 @@ export class ApplicationsController {
     return this.applicationsService.getApplicationsByApplicantId(applicantId, query.page, query.limit);
   }
 
-  @UseGuards(UserAuthorizationGuard)
   @Roles("shelter")
   @Get('shelter/:shelterId')
   async getApplicationsByShelter(
@@ -81,7 +75,6 @@ export class ApplicationsController {
     return this.applicationsService.getApplicationsByShelterId(shelterId, query.page, query.limit, query.status);
   }
 
-  @UseGuards(UserAuthorizationGuard)
   @Roles('shelter')
   @Get("shelter/:shelterId/stats")
   async getShelterStats(
