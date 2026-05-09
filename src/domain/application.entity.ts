@@ -93,3 +93,5 @@ export class ApplicationReview {
         )
     }
 }
+
+export type ApplicationFindAll = Pick<Application, "id" | "dogName" | "dogBreed" | "dogImage" | "shelterName" | "shelterLogo" | "status">

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ApplicationsRepository } from "../../domain/applications.repository.js";
 import { PrismaService } from "./prisma.service.js";
-import { Application, ApplicationReview, ApplicationStatus } from "../../domain/application.entity.js";
+import { Application, ApplicationReview, ApplicationStatus, ApplicationFindAll } from "../../domain/application.entity.js";
 
 @Injectable()
 export class PrismaApplicationsRepository implements ApplicationsRepository {
@@ -121,5 +121,70 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
             createdAt: application.createdAt,
             updatedAt: application.updatedAt,
         });
+    }
+
+    async findAllByApplicantId(applicantId: string, page: number, limit: number): Promise<{ items: ApplicationFindAll[], total: number }> {
+        const skip = (page - 1) * limit;
+        
+        const [items, total] = await Promise.all([
+            this.prisma.application.findMany({
+                where: { applicantId },
+                select: {
+                    id: true,
+                    dogName: true,
+                    dogBreed: true,
+                    dogImage: true,
+                    shelterName: true,
+                    shelterLogo: true,
+                    status: true,
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.application.count({
+                where: { applicantId },
+            }),
+        ]);
+
+        return {
+            items: items as ApplicationFindAll[],
+            total,
+        };
+    }
+
+    async findAllByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ items: ApplicationFindAll[], total: number }> {
+        const skip = (page - 1) * limit;
+        
+        const whereClause = {
+            shelterId,
+            ...(status ? { status } : {}),
+        };
+
+        const [items, total] = await Promise.all([
+            this.prisma.application.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    dogName: true,
+                    dogBreed: true,
+                    dogImage: true,
+                    shelterName: true,
+                    shelterLogo: true,
+                    status: true,
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.application.count({
+                where: whereClause,
+            }),
+        ]);
+
+        return {
+            items: items as ApplicationFindAll[],
+            total,
+        };
     }
 }

@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Post, Delete, Patch, UseGuards, UsePipes, ValidationPipe, Param, ParseUUIDPipe, Logger } from '@nestjs/common';
+import { Body, Controller, Get, Post, Delete, Patch, UseGuards, UsePipes, ValidationPipe, Param, ParseUUIDPipe, Logger, Query } from '@nestjs/common';
 import { Roles } from './infrastructure/security/roles.decorator.js';
 import { UserAuthorizationGuard } from './infrastructure/security/user.authorization.guard.js';
 import { ApplicationsService } from './application/applications.service.js';
 import { CreateApplicationDto } from './application/create-application.dto.js';
-import { Application } from './domain/application.entity.js';
+import { Application, ApplicationFindAll } from './domain/application.entity.js';
 import { UpdateApplicationStatusDto } from './application/update-status.dto.js';
+import { GetApplicationsQueryDto } from './application/get-applications-query.dto.js';
 
 @Controller('applications-ms')
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -56,5 +57,27 @@ export class ApplicationsController {
   async getRecentFormData(@Param('applicantId', ParseUUIDPipe) applicantId: string): Promise<any> {
     this.logger.log(`GET request received to retrieve recent form data for applicant: ${applicantId}`);
     return await this.applicationsService.getMostRecentFormData(applicantId);
+  }
+
+  @UseGuards(UserAuthorizationGuard)
+  @Roles("applicant")
+  @Get('applicant/:applicantId')
+  async getApplicationsByApplicant(
+    @Param('applicantId', ParseUUIDPipe) applicantId: string,
+    @Query() query: GetApplicationsQueryDto,
+  ): Promise<{ items: ApplicationFindAll[], total: number }> {
+    this.logger.log(`GET request received to retrieve paginated applications for applicant: ${applicantId}`);
+    return await this.applicationsService.getApplicationsByApplicantId(applicantId, query.page, query.limit);
+  }
+
+  @UseGuards(UserAuthorizationGuard)
+  @Roles("shelter")
+  @Get('shelter/:shelterId')
+  async getApplicationsByShelter(
+    @Param('shelterId', ParseUUIDPipe) shelterId: string,
+    @Query() query: GetApplicationsQueryDto,
+  ): Promise<{ items: ApplicationFindAll[], total: number }> {
+    this.logger.log(`GET request received to retrieve paginated applications for shelter: ${shelterId}`);
+    return await this.applicationsService.getApplicationsByShelterId(shelterId, query.page, query.limit, query.status);
   }
 }

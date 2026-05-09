@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException, ForbiddenException } from "@nest
 import { ApplicationsRepository } from "../domain/applications.repository.js";
 import { CreateApplicationDto } from "./create-application.dto.js";
 import { UpdateApplicationStatusDto } from "./update-status.dto.js";
-import { Application, ApplicationStatus, ApplicationReview } from "../domain/application.entity.js";
+import { Application, ApplicationStatus, ApplicationReview, ApplicationFindAll } from "../domain/application.entity.js";
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -124,5 +124,23 @@ export class ApplicationsService {
         }
 
         return application.formData;
+    }
+
+    async getApplicationsByApplicantId(applicantId: string, page: number, limit: number): Promise<{ items: ApplicationFindAll[], total: number }> {
+        this.logger.log(`Fetching paginated applications for applicant: ${applicantId}, page: ${page}, limit: ${limit}`);
+        
+        const result = await this.repository.findAllByApplicantId(applicantId, page, limit);
+        
+        this.logger.debug(`Successfully retrieved ${result.items.length} applications for applicant: ${applicantId}`);
+        return result;
+    }
+
+    async getApplicationsByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ items: ApplicationFindAll[], total: number }> {
+        this.logger.log(`Fetching paginated applications for shelter: ${shelterId}, page: ${page}, limit: ${limit}, status: ${status}`);
+        
+        const result = await this.repository.findAllByShelterId(shelterId, page, limit, status);
+        
+        this.logger.debug(`Successfully retrieved ${result.items.length} applications for shelter: ${shelterId}`);
+        return result;
     }
 }
