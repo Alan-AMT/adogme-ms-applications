@@ -13,25 +13,63 @@ datasource db {
   schemas  = ["applications_service"]
 }
 
-model Application {
-  id                String            @id @unique
-  dogId             String
-  applicantId       String
-  shelterId         String
-  status            ApplicationStatus
-  shelterComments   String?           @db.Text
-  applicantComments String?           @db.Text
-
-  createdAt DateTime
-  updatedAt DateTime
+enum ApplicationStatus {
+  pending
+  in_review
+  approved
+  rejected
+  cancelled
 
   @@schema("applications_service")
 }
 
-enum ApplicationStatus {
-  pending
-  approved
-  rejected
+model Application {
+  id String @id @unique
+
+  // FKs (microservice boundaries — sin @relation cross-service)
+  applicantId String
+  dogId       String
+  shelterId   String
+
+  // Campos duplicados del perro (denormalizados para evitar joins cross-service)
+  dogName     String
+  dogBreed    String
+  dogImage    String?
+  shelterName String
+  shelterLogo String?
+
+  // Formulario completo (estructura: AdoptionFormData del frontend)
+  formData    Json
+  formVersion Int  @default(1)
+
+  // Estado y matching
+  status             ApplicationStatus @default(pending)
+  compatibilityScore Float? // 0.0 - 1.0
+
+  // Historial de revisiones del shelter (cambios de status + notas)
+  reviews ApplicationReview[]
+
+  createdAt DateTime
+  updatedAt DateTime
+
+  @@index([applicantId])
+  @@index([shelterId, status])
+  @@schema("applications_service")
+}
+
+model ApplicationReview {
+  id            String      @id @unique
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // Cambio de status (fromStatus = status anterior, toStatus = nuevo)
+  fromStatus ApplicationStatus
+  toStatus   ApplicationStatus
+
+  // Nota libre del shelter (opcional — puede ser solo un cambio de status sin nota)
+  note String? @db.Text
+
+  createdAt DateTime
 
   @@schema("applications_service")
 }
