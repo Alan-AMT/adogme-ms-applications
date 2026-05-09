@@ -71,4 +71,25 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
             updatedAt: application.updatedAt,
         });
     }
+
+    async updateStatus(id: string, status: ApplicationStatus, applicationReview?: ApplicationReview): Promise<void> {
+        await this.prisma.application.update({
+            where: { id },
+            data: {
+                status,
+                updatedAt: new Date(),
+                ...(applicationReview && {
+                    reviews: {
+                        create: {
+                            id: applicationReview.id,
+                            fromStatus: applicationReview.fromStatus,
+                            toStatus: applicationReview.toStatus,
+                            note: applicationReview.note,
+                            createdAt: applicationReview.createdAt,
+                        }
+                    }
+                })
+            },
+        });
+    }
 }
