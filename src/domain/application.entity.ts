@@ -21,6 +21,7 @@ export class Application {
         public readonly formVersion: number,
         public readonly status: ApplicationStatus,
         public readonly compatibilityScore: number | null,
+        public readonly reviews: ApplicationReview[],
         public readonly createdAt: Date,
         public readonly updatedAt: Date,
     ) {}
@@ -39,6 +40,7 @@ export class Application {
         formVersion: number,
         status: ApplicationStatus,
         compatibilityScore: number | null,
+        reviews: ApplicationReview[],
         createdAt: Date,
         updatedAt: Date,
     }){
@@ -56,6 +58,7 @@ export class Application {
             data.formVersion,
             data.status,
             data.compatibilityScore,
+            data.reviews,
             data.createdAt,
             data.updatedAt,
         )
@@ -77,7 +80,7 @@ export class ApplicationReview {
         applicationId: string,
         fromStatus: ApplicationStatus,
         toStatus: ApplicationStatus,
-        note: string,
+        note: string | null,
         createdAt: Date,
     }){
         return new ApplicationReview(
