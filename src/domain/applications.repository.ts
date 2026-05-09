@@ -1,3 +1,5 @@
+import { Application } from "./application.entity.js";
+
 export abstract class ApplicationsRepository {
-    abstract create(): Promise<void>;
+    abstract create(application: Application): Promise<void>;
 }    
