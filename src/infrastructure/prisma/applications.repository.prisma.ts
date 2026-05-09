@@ -98,10 +98,10 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
         });
     }
 
-    async findAllByApplicantId(applicantId: string, page: number, limit: number): Promise<{ items: ApplicationFindAll[], total: number }> {
+    async findAllByApplicantId(applicantId: string, page: number, limit: number): Promise<{ data: ApplicationFindAll[], total: number }> {
         const skip = (page - 1) * limit;
         
-        const [items, total] = await Promise.all([
+        const [data, total] = await Promise.all([
             this.prisma.application.findMany({
                 where: { applicantId },
                 select: {
@@ -125,12 +125,12 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
         ]);
 
         return {
-            items: items as ApplicationFindAll[],
+            data: data as ApplicationFindAll[],
             total,
         };
     }
 
-    async findAllByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ items: ApplicationFindAll[], total: number }> {
+    async findAllByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ data: ApplicationFindAll[], total: number }> {
         const skip = (page - 1) * limit;
         
         const whereClause = {
@@ -138,7 +138,7 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
             ...(status ? { status } : {}),
         };
 
-        const [items, total] = await Promise.all([
+        const [data, total] = await Promise.all([
             this.prisma.application.findMany({
                 where: whereClause,
                 select: {
@@ -162,8 +162,33 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
         ]);
 
         return {
-            items: items as ApplicationFindAll[],
+            data: data as ApplicationFindAll[],
             total,
         };
+    }
+
+    async getApplicationsCountByStatus(shelterId: string): Promise<{
+        pending: number,
+        in_review: number,
+        approved: number,
+        rejected: number,
+        cancelled: number,
+    }> {
+        const applications = await this.prisma.application.groupBy({
+            by: ['status'],
+            where: { shelterId },
+            _count: true
+        });
+        const count = applications.reduce((acc, application) => {
+            acc[application.status] = application._count;
+            return acc;
+        }, {
+            pending: 0,
+            in_review: 0,
+            approved: 0,
+            rejected: 0,
+            cancelled: 0,
+        });
+        return count;
     }
 }

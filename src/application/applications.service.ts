@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from "@nestjs/common";
 import { ApplicationsRepository } from "../domain/applications.repository.js";
 import { CreateApplicationDto } from "./create-application.dto.js";
 import { UpdateApplicationStatusDto } from "./update-status.dto.js";
@@ -127,21 +127,66 @@ export class ApplicationsService {
         return application.formData;
     }
 
-    async getApplicationsByApplicantId(applicantId: string, page: number, limit: number): Promise<{ items: ApplicationFindAll[], total: number }> {
+    async getApplicationsByApplicantId(applicantId: string, page: number, limit: number): Promise<{ data: ApplicationFindAll[], total: number, page: number, totalPages: number, limit: number }> {
         this.logger.log(`Fetching paginated applications for applicant: ${applicantId}, page: ${page}, limit: ${limit}`);
         
-        const result = await this.repository.findAllByApplicantId(applicantId, page, limit);
+        const { data, total } = await this.repository.findAllByApplicantId(applicantId, page, limit);
+        const totalPages = Math.ceil(total / limit);
+        if (page > totalPages) {
+                return {
+                    data: [],
+                    total,
+                    page,
+                    totalPages,
+                    limit
+                };
+        }
         
-        this.logger.debug(`Successfully retrieved ${result.items.length} applications for applicant: ${applicantId}`);
-        return result;
+        this.logger.debug(`Successfully retrieved ${data.length} applications for applicant: ${applicantId}`);
+        return { data, total, page, totalPages, limit };
     }
 
-    async getApplicationsByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ items: ApplicationFindAll[], total: number }> {
+    async getApplicationsByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ data: ApplicationFindAll[], total: number, page: number, totalPages: number, limit: number }> {
         this.logger.log(`Fetching paginated applications for shelter: ${shelterId}, page: ${page}, limit: ${limit}, status: ${status}`);
         
-        const result = await this.repository.findAllByShelterId(shelterId, page, limit, status);
-        
-        this.logger.debug(`Successfully retrieved ${result.items.length} applications for shelter: ${shelterId}`);
-        return result;
+        const { data, total } = await this.repository.findAllByShelterId(shelterId, page, limit, status);
+        const totalPages = Math.ceil(total / limit);
+        if (page > totalPages) {
+            return {
+                data: [],
+                total,
+                page,
+                totalPages,
+                limit
+            };
+        }
+        this.logger.debug(`Successfully retrieved ${data.length} applications for shelter: ${shelterId}`);
+        return { data, total, page, totalPages, limit };
+    }
+
+    async getShelterStats(shelterId: string): Promise<{
+        recentApplications: ApplicationFindAll[],
+        applicationsByStatus: {
+          pending: number,
+          in_review: number,
+          approved: number,
+          rejected: number,
+          cancelled: number,
+        }
+      }> {
+        this.logger.log(`Fetching shelter stats for shelter ${shelterId}`);
+        try {
+            const [recentApplications, applicationsByStatus] = await Promise.all([
+                this.repository.findAllByShelterId(shelterId, 1, 5),
+                this.repository.getApplicationsCountByStatus(shelterId)
+            ]);
+            return {
+                recentApplications: recentApplications.data,
+                applicationsByStatus
+            };
+        } catch (error) {
+            this.logger.error(`Failed to fetch shelter stats: ${error.message}`, error.stack);
+            throw new InternalServerErrorException('Failed to fetch shelter stats');
+        }
     }
 }

@@ -18,7 +18,7 @@ export class ApplicationsController {
   @Roles("applicant")
   @Post()
   async create(@Body() createApplicationDto: CreateApplicationDto): Promise<string> {
-    return await this.applicationsService.createApplication(createApplicationDto);
+    return this.applicationsService.createApplication(createApplicationDto);
   }
 
   @UseGuards(UserAuthorizationGuard)
@@ -26,7 +26,7 @@ export class ApplicationsController {
   @Get(':id')
   async getById(@Param('id', ParseUUIDPipe) id: string): Promise<Application> {
     this.logger.log(`GET request received to retrieve application with ID: ${id}`);
-    return await this.applicationsService.getApplicationById(id);
+    return this.applicationsService.getApplicationById(id);
   }
 
   @UseGuards(UserAuthorizationGuard)
@@ -56,7 +56,7 @@ export class ApplicationsController {
   @Get('recent/:applicantId')
   async getRecentFormData(@Param('applicantId', ParseUUIDPipe) applicantId: string): Promise<any> {
     this.logger.log(`GET request received to retrieve recent form data for applicant: ${applicantId}`);
-    return await this.applicationsService.getMostRecentFormData(applicantId);
+    return this.applicationsService.getMostRecentFormData(applicantId);
   }
 
   @UseGuards(UserAuthorizationGuard)
@@ -65,9 +65,9 @@ export class ApplicationsController {
   async getApplicationsByApplicant(
     @Param('applicantId', ParseUUIDPipe) applicantId: string,
     @Query() query: GetApplicationsQueryDto,
-  ): Promise<{ items: ApplicationFindAll[], total: number }> {
+  ): Promise<{ data: ApplicationFindAll[], total: number, page: number, totalPages: number, limit: number }> {
     this.logger.log(`GET request received to retrieve paginated applications for applicant: ${applicantId}`);
-    return await this.applicationsService.getApplicationsByApplicantId(applicantId, query.page, query.limit);
+    return this.applicationsService.getApplicationsByApplicantId(applicantId, query.page, query.limit);
   }
 
   @UseGuards(UserAuthorizationGuard)
@@ -76,8 +76,28 @@ export class ApplicationsController {
   async getApplicationsByShelter(
     @Param('shelterId', ParseUUIDPipe) shelterId: string,
     @Query() query: GetApplicationsQueryDto,
-  ): Promise<{ items: ApplicationFindAll[], total: number }> {
+  ): Promise<{ data: ApplicationFindAll[], total: number, page: number, totalPages: number, limit: number }> {
     this.logger.log(`GET request received to retrieve paginated applications for shelter: ${shelterId}`);
-    return await this.applicationsService.getApplicationsByShelterId(shelterId, query.page, query.limit, query.status);
+    return this.applicationsService.getApplicationsByShelterId(shelterId, query.page, query.limit, query.status);
+  }
+
+  @UseGuards(UserAuthorizationGuard)
+  @Roles('shelter')
+  @Get("shelter/:shelterId/stats")
+  async getShelterStats(
+    @Param('shelterId') shelterId: string,
+  ): Promise<
+    {
+      recentApplications: ApplicationFindAll[],
+      applicationsByStatus: {
+        pending: number,
+        in_review: number,
+        approved: number,
+        rejected: number,
+        cancelled: number,
+      }
+    }
+  > {
+    return this.applicationsService.getShelterStats(shelterId);
   }
 }

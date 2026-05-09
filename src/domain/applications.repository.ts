@@ -5,6 +5,13 @@ export abstract class ApplicationsRepository {
     abstract findById(id: string): Promise<Application | null>;
     abstract updateStatus(id: string, status: ApplicationStatus, applicationReview?: ApplicationReview): Promise<void>;
     abstract findMostRecentByApplicantId(applicantId: string): Promise<Application | null>;
-    abstract findAllByApplicantId(applicantId: string, page: number, limit: number): Promise<{ items: ApplicationFindAll[], total: number }>;
-    abstract findAllByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ items: ApplicationFindAll[], total: number }>;
+    abstract findAllByApplicantId(applicantId: string, page: number, limit: number): Promise<{ data: ApplicationFindAll[], total: number }>;
+    abstract findAllByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ data: ApplicationFindAll[], total: number }>;
+    abstract getApplicationsCountByStatus(shelterId: string): Promise<{
+        pending: number,
+        in_review: number,
+        approved: number,
+        rejected: number,
+        cancelled: number,
+    }>;
 }
