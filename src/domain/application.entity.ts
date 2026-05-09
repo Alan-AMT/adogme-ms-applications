@@ -17,6 +17,7 @@ export class Application {
         public readonly dogImage: string | null,
         public readonly shelterName: string,
         public readonly shelterLogo: string | null,
+        public readonly applicantName: string,
         public readonly formData: any,
         public readonly formVersion: number,
         public readonly status: ApplicationStatus,
@@ -36,6 +37,7 @@ export class Application {
         dogImage: string | null,
         shelterName: string,
         shelterLogo: string | null,
+        applicantName: string,
         formData: any,
         formVersion: number,
         status: ApplicationStatus,
@@ -54,6 +56,7 @@ export class Application {
             data.dogImage,
             data.shelterName,
             data.shelterLogo,
+            data.applicantName,
             data.formData,
             data.formVersion,
             data.status,
@@ -94,4 +97,4 @@ export class ApplicationReview {
     }
 }
 
-export type ApplicationFindAll = Pick<Application, "id" | "dogName" | "dogBreed" | "dogImage" | "shelterName" | "shelterLogo" | "status">
+export type ApplicationFindAll = Pick<Application, "id" | "dogName" | "dogBreed" | "dogImage" | "shelterName" | "shelterLogo" | "applicantName" | "status" | "createdAt">

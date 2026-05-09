@@ -33,6 +33,10 @@ export class CreateApplicationDto {
     @IsString()
     shelterLogo: string | null = null;
 
+    @IsString()
+    @IsNotEmpty()
+    applicantName: string;
+
     @IsNotEmpty()
     formData: any;
 

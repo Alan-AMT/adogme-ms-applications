@@ -23,6 +23,7 @@ export class ApplicationsService {
             dogImage: createApplicationDto.dogImage,
             shelterName: createApplicationDto.shelterName,
             shelterLogo: createApplicationDto.shelterLogo,
+            applicantName: createApplicationDto.applicantName,
             formData: createApplicationDto.formData,
             formVersion: 1,
             status: ApplicationStatus.PENDING,

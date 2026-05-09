@@ -19,6 +19,7 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
                 dogImage: application.dogImage,
                 shelterName: application.shelterName,
                 shelterLogo: application.shelterLogo,
+                applicantName: application.applicantName,
                 formData: application.formData,
                 formVersion: application.formVersion,
                 status: application.status,
@@ -46,19 +47,8 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
         }
 
         return Application.create({
-            id: application.id,
-            applicantId: application.applicantId,
-            dogId: application.dogId,
-            shelterId: application.shelterId,
-            dogName: application.dogName,
-            dogBreed: application.dogBreed,
-            dogImage: application.dogImage,
-            shelterName: application.shelterName,
-            shelterLogo: application.shelterLogo,
-            formData: application.formData,
-            formVersion: application.formVersion,
+            ...application,
             status: application.status as ApplicationStatus,
-            compatibilityScore: application.compatibilityScore,
             reviews: application.reviews.map((review) => ApplicationReview.create({
                 id: review.id,
                 applicationId: review.applicationId,
@@ -67,8 +57,6 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
                 note: review.note,
                 createdAt: review.createdAt,
             })),
-            createdAt: application.createdAt,
-            updatedAt: application.updatedAt,
         });
     }
 
@@ -104,22 +92,9 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
         }
 
         return Application.create({
-            id: application.id,
-            applicantId: application.applicantId,
-            dogId: application.dogId,
-            shelterId: application.shelterId,
-            dogName: application.dogName,
-            dogBreed: application.dogBreed,
-            dogImage: application.dogImage,
-            shelterName: application.shelterName,
-            shelterLogo: application.shelterLogo,
-            formData: application.formData,
-            formVersion: application.formVersion,
-            status: application.status as ApplicationStatus,
-            compatibilityScore: application.compatibilityScore,
+            ...application,
             reviews: [],
-            createdAt: application.createdAt,
-            updatedAt: application.updatedAt,
+            status: application.status as ApplicationStatus,
         });
     }
 
@@ -136,7 +111,9 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
                     dogImage: true,
                     shelterName: true,
                     shelterLogo: true,
+                    applicantName: true,
                     status: true,
+                    createdAt: true,
                 },
                 orderBy: { createdAt: 'desc' },
                 skip,
@@ -171,7 +148,9 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
                     dogImage: true,
                     shelterName: true,
                     shelterLogo: true,
+                    applicantName: true,
                     status: true,
+                    createdAt: true,
                 },
                 orderBy: { createdAt: 'desc' },
                 skip,

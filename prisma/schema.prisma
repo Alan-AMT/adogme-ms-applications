@@ -32,11 +32,12 @@ model Application {
   shelterId   String
 
   // Campos duplicados del perro (denormalizados para evitar joins cross-service)
-  dogName     String
-  dogBreed    String
-  dogImage    String?
-  shelterName String
-  shelterLogo String?
+  dogName       String
+  dogBreed      String
+  dogImage      String?
+  shelterName   String
+  shelterLogo   String?
+  applicantName String
 
   // Formulario completo (estructura: AdoptionFormData del frontend)
   formData    Json
