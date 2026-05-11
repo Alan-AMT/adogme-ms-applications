@@ -6,6 +6,7 @@ import { CreateApplicationDto } from './application/create-application.dto.js';
 import { Application, ApplicationFindAll } from './domain/application.entity.js';
 import { UpdateApplicationStatusDto } from './application/update-status.dto.js';
 import { GetApplicationsQueryDto } from './application/get-applications-query.dto.js';
+import { GetChartStatsQueryDto } from './application/get-chart-stats-query.dto.js';
 
 @Controller('applications-ms')
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -102,5 +103,15 @@ export class ApplicationsController {
     }
   > {
     return this.applicationsService.getShelterStats(shelterId);
+  }
+
+  @Roles("shelter")
+  @Get('shelter/:shelterId/by-period')
+  async getChartStatsByPeriod(
+    @Param('shelterId', ParseUUIDPipe) shelterId: string,
+    @Query() query: GetChartStatsQueryDto,
+  ): Promise<{ label: string, value: number }[]> {
+    this.logger.log(`GET request received to retrieve chart stats for shelter: ${shelterId} period: ${query.period}`);
+    return this.applicationsService.getChartStats(shelterId, query.period);
   }
 }

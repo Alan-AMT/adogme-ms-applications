@@ -200,4 +200,82 @@ export class ApplicationsService {
             throw new InternalServerErrorException('Failed to fetch shelter stats');
         }
     }
+
+    async getChartStats(shelterId: string, period: 'semana' | 'mes' | 'año'): Promise<{ label: string, value: number }[]> {
+        this.logger.log(`Fetching chart stats for shelter ${shelterId} and period ${period}`);
+        
+        const now = new Date();
+        
+        // Helper to get date locally in Mexico City
+        const getMxDate = (d: Date) => new Date(d.toLocaleString("en-US", {timeZone: "America/Mexico_City"}));
+        
+        const nowMx = getMxDate(now);
+        nowMx.setHours(0, 0, 0, 0);
+
+        let startDate = new Date(now);
+        if (period === 'semana') {
+            startDate.setDate(startDate.getDate() - 8); // Extra day to be safe with timezones
+        } else if (period === 'mes') {
+            startDate.setDate(startDate.getDate() - 30);
+        } else if (period === 'año') {
+            startDate.setFullYear(startDate.getFullYear() - 1);
+            startDate.setDate(startDate.getDate() - 5);
+        }
+
+        const applications = await this.repository.findCreatedAtByShelterId(shelterId, startDate);
+        
+        const buckets: { label: string, value: number, date?: Date, month?: number, year?: number }[] = [];
+
+        if (period === 'semana') {
+            const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(nowMx);
+                d.setDate(d.getDate() - i);
+                buckets.push({ label: days[d.getDay()], value: 0, date: d });
+            }
+            
+            for (const app of applications) {
+                const appMx = getMxDate(app.createdAt);
+                appMx.setHours(0, 0, 0, 0);
+                const diffDays = Math.floor((nowMx.getTime() - appMx.getTime()) / (1000 * 60 * 60 * 24));
+                if (diffDays >= 0 && diffDays < 7) {
+                    buckets[6 - diffDays].value++;
+                }
+            }
+        } else if (period === 'mes') {
+            buckets.push({ label: 'Sem 1', value: 0 });
+            buckets.push({ label: 'Sem 2', value: 0 });
+            buckets.push({ label: 'Sem 3', value: 0 });
+            buckets.push({ label: 'Sem 4', value: 0 });
+
+            for (const app of applications) {
+                const appMx = getMxDate(app.createdAt);
+                appMx.setHours(0, 0, 0, 0);
+                const diffDays = Math.floor((nowMx.getTime() - appMx.getTime()) / (1000 * 60 * 60 * 24));
+                if (diffDays >= 0 && diffDays < 28) {
+                    const bucketIndex = 3 - Math.floor(diffDays / 7);
+                    buckets[bucketIndex].value++;
+                }
+            }
+        } else if (period === 'año') {
+            const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            for (let i = 11; i >= 0; i--) {
+                const d = new Date(nowMx);
+                d.setMonth(d.getMonth() - i);
+                buckets.push({ label: monthNames[d.getMonth()], value: 0, month: d.getMonth(), year: d.getFullYear() });
+            }
+
+            for (const app of applications) {
+                const appMx = getMxDate(app.createdAt);
+                const m = appMx.getMonth();
+                const y = appMx.getFullYear();
+                const bucket = buckets.find(b => b.month === m && b.year === y);
+                if (bucket) {
+                    bucket.value++;
+                }
+            }
+        }
+
+        return buckets.map(b => ({ label: b.label, value: b.value }));
+    }
 }

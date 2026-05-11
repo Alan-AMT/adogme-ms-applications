@@ -15,4 +15,5 @@ export abstract class ApplicationsRepository {
         rejected: number,
         cancelled: number,
     }>;
+    abstract findCreatedAtByShelterId(shelterId: string, since: Date): Promise<{ createdAt: Date }[]>;
 }

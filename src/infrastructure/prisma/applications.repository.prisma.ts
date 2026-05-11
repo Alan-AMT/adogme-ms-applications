@@ -214,4 +214,18 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
         });
         return count;
     }
+
+    async findCreatedAtByShelterId(shelterId: string, since: Date): Promise<{ createdAt: Date }[]> {
+        return this.prisma.application.findMany({
+            where: {
+                shelterId,
+                createdAt: {
+                    gte: since,
+                },
+            },
+            select: {
+                createdAt: true,
+            },
+        });
+    }
 }
