@@ -22,6 +22,16 @@ export class ApplicationsController {
     return this.applicationsService.createApplication(createApplicationDto);
   }
 
+  @Roles("applicant")
+  @Get('check')
+  async checkNotExistingRequest(
+    @Query('applicantId', ParseUUIDPipe) applicantId: string,
+    @Query('dogId', ParseUUIDPipe) dogId: string,
+  ): Promise<{ exists: boolean, applicationId?: string }> {
+    this.logger.log(`GET request received to check existing application for applicant: ${applicantId} and dog: ${dogId}`);
+    return this.applicationsService.checkNotExistingRequest(applicantId, dogId);
+  }
+
   @Roles("applicant", "shelter")
   @Get(':id')
   async getById(@Param('id', ParseUUIDPipe) id: string): Promise<Application> {
@@ -54,16 +64,6 @@ export class ApplicationsController {
   async getRecentFormData(@Param('applicantId', ParseUUIDPipe) applicantId: string): Promise<any> {
     this.logger.log(`GET request received to retrieve recent form data for applicant: ${applicantId}`);
     return this.applicationsService.getMostRecentFormData(applicantId);
-  }
-
-  @Roles("applicant")
-  @Get('check')
-  async checkNotExistingRequest(
-    @Query('applicantId', ParseUUIDPipe) applicantId: string,
-    @Query('dogId', ParseUUIDPipe) dogId: string,
-  ): Promise<{ exists: boolean, applicationId?: string }> {
-    this.logger.log(`GET request received to check existing application for applicant: ${applicantId} and dog: ${dogId}`);
-    return this.applicationsService.checkNotExistingRequest(applicantId, dogId);
   }
 
   @Roles("applicant")
