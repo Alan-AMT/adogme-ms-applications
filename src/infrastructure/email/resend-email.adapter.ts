@@ -1,14 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
 import { EmailSenderPort, SendEmailParams, EmailTemplate } from '../../domain/email-sender.port.js';
+// src/infrastructure/email/resend-email.adapter.ts
+import { ConfigService } from '@nestjs/config';
+import { ApplicationsService } from '../../application/applications.service.js';
+
 
 @Injectable()
 export class ResendEmailAdapter implements EmailSenderPort {
   private readonly resend: Resend;
-  private readonly logger = new Logger(ResendEmailAdapter.name);
-
-  constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY);
+  private readonly logger = new Logger(ApplicationsService.name);
+  
+  constructor(private configService: ConfigService) {
+    const apiKey = this.configService.get<string>('RESEND_API_KEY');
+    if (!apiKey) {
+      this.logger.error('RESEND_API_KEY is not defined');
+      // You can either throw a more descriptive error or initialize as null 
+      // and check before sending if email is optional.
+    }
+    this.resend = new Resend(apiKey);
   }
 
   async sendEmail(params: SendEmailParams): Promise<void> {

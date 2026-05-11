@@ -50,6 +50,7 @@ jobs:
           DATABASE_URL=MS_APPLICATIONS_DATABASE_URL:latest
           BUCKET_NAME_PUBLIC=APPLICATIONS_BUCKET_NAME_PUBLIC:latest
           BUCKET_NAME_UPLOADS=APPLICATIONS_BUCKET_NAME_UPLOADS:latest
+          RESEND_API_KEY:RESEND_API_KEY:latest
         # Ajustar según necesidades de seguridad
         # flags: '--allow-unauthenticated' 
         flags: '--no-allow-unauthenticated'
