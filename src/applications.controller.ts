@@ -56,6 +56,16 @@ export class ApplicationsController {
   }
 
   @Roles("applicant")
+  @Get('check')
+  async checkNotExistingRequest(
+    @Query('applicantId', ParseUUIDPipe) applicantId: string,
+    @Query('dogId', ParseUUIDPipe) dogId: string,
+  ): Promise<{ exists: boolean, applicationId?: string }> {
+    this.logger.log(`GET request received to check existing application for applicant: ${applicantId} and dog: ${dogId}`);
+    return this.applicationsService.checkNotExistingRequest(applicantId, dogId);
+  }
+
+  @Roles("applicant")
   @Get('applicant/:applicantId')
   async getApplicationsByApplicant(
     @Param('applicantId', ParseUUIDPipe) applicantId: string,
@@ -72,7 +82,7 @@ export class ApplicationsController {
     @Query() query: GetApplicationsQueryDto,
   ): Promise<{ data: ApplicationFindAll[], total: number, page: number, totalPages: number, limit: number }> {
     this.logger.log(`GET request received to retrieve paginated applications for shelter: ${shelterId}`);
-    return this.applicationsService.getApplicationsByShelterId(shelterId, query.page, query.limit, query.status);
+    return this.applicationsService.getApplicationsByShelterId(shelterId, query.page, query.limit, query.status, query.search);
   }
 
   @Roles('shelter')

@@ -53,6 +53,7 @@ model Application {
   createdAt DateTime
   updatedAt DateTime
 
+  @@unique([applicantId, dogId])
   @@index([applicantId])
   @@index([shelterId, status])
   @@schema("applications_service")

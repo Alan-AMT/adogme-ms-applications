@@ -98,6 +98,22 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
         });
     }
 
+    async findByApplicantAndDogId(applicantId: string, dogId: string): Promise<Application | null> {
+        const application = await this.prisma.application.findFirst({
+            where: { applicantId, dogId },
+        });
+
+        if (!application) {
+            return null;
+        }
+
+        return Application.create({
+            ...application,
+            reviews: [],
+            status: application.status as ApplicationStatus,
+        });
+    }
+
     async findAllByApplicantId(applicantId: string, page: number, limit: number): Promise<{ data: ApplicationFindAll[], total: number }> {
         const skip = (page - 1) * limit;
         
@@ -130,13 +146,20 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
         };
     }
 
-    async findAllByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ data: ApplicationFindAll[], total: number }> {
+    async findAllByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus, search?: string): Promise<{ data: ApplicationFindAll[], total: number }> {
         const skip = (page - 1) * limit;
         
-        const whereClause = {
+        const whereClause: any = {
             shelterId,
             ...(status ? { status } : {}),
         };
+
+        if (search) {
+            whereClause.OR = [
+                { dogName: { contains: search, mode: 'insensitive' } },
+                { applicantName: { contains: search, mode: 'insensitive' } },
+            ];
+        }
 
         const [data, total] = await Promise.all([
             this.prisma.application.findMany({

@@ -127,6 +127,17 @@ export class ApplicationsService {
         return application.formData;
     }
 
+    async checkNotExistingRequest(applicantId: string, dogId: string): Promise<{ exists: boolean, applicationId?: string }> {
+        this.logger.log(`Checking existing application for applicant: ${applicantId} and dog: ${dogId}`);
+        const application = await this.repository.findByApplicantAndDogId(applicantId, dogId);
+        
+        if (application) {
+            return { exists: true, applicationId: application.id };
+        }
+        
+        return { exists: false };
+    }
+
     async getApplicationsByApplicantId(applicantId: string, page: number, limit: number): Promise<{ data: ApplicationFindAll[], total: number, page: number, totalPages: number, limit: number }> {
         this.logger.log(`Fetching paginated applications for applicant: ${applicantId}, page: ${page}, limit: ${limit}`);
         
@@ -146,10 +157,10 @@ export class ApplicationsService {
         return { data, total, page, totalPages, limit };
     }
 
-    async getApplicationsByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus): Promise<{ data: ApplicationFindAll[], total: number, page: number, totalPages: number, limit: number }> {
-        this.logger.log(`Fetching paginated applications for shelter: ${shelterId}, page: ${page}, limit: ${limit}, status: ${status}`);
+    async getApplicationsByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus, search?: string): Promise<{ data: ApplicationFindAll[], total: number, page: number, totalPages: number, limit: number }> {
+        this.logger.log(`Fetching paginated applications for shelter: ${shelterId}, page: ${page}, limit: ${limit}, status: ${status}, search: ${search}`);
         
-        const { data, total } = await this.repository.findAllByShelterId(shelterId, page, limit, status);
+        const { data, total } = await this.repository.findAllByShelterId(shelterId, page, limit, status, search);
         const totalPages = Math.ceil(total / limit);
         if (page > totalPages) {
             return {

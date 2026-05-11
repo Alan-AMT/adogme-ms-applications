@@ -18,4 +18,7 @@ export class GetApplicationsQueryDto {
     @IsOptional()
     @IsEnum(ApplicationStatus)
     status?: ApplicationStatus;
+
+    @IsOptional()
+    search?: string;
 }
