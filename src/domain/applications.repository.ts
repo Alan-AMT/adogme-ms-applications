@@ -5,7 +5,7 @@ export abstract class ApplicationsRepository {
     abstract findById(id: string): Promise<Application | null>;
     abstract updateStatus(id: string, status: ApplicationStatus, applicationReview?: ApplicationReview): Promise<void>;
     abstract findMostRecentByApplicantId(applicantId: string): Promise<Application | null>;
-    abstract findByApplicantAndDogId(applicantId: string, dogId: string): Promise<Application | null>;
+    abstract findByApplicantAndDogId(applicantId: string, dogId: string): Promise<string | null>;
     abstract findAllByApplicantId(applicantId: string, page: number, limit: number): Promise<{ data: ApplicationFindAll[], total: number }>;
     abstract findAllByShelterId(shelterId: string, page: number, limit: number, status?: ApplicationStatus, search?: string): Promise<{ data: ApplicationFindAll[], total: number }>;
     abstract getApplicationsCountByStatus(shelterId: string): Promise<{

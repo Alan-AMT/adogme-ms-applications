@@ -47,6 +47,9 @@ model Application {
   status             ApplicationStatus @default(pending)
   compatibilityScore Float? // 0.0 - 1.0
 
+  // Imágenes (rutas almacenadas)
+  images String[] @default([])
+
   // Historial de revisiones del shelter (cambios de status + notas)
   reviews ApplicationReview[]
 

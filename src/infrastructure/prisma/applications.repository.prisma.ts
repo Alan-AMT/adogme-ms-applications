@@ -24,6 +24,7 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
                 formVersion: application.formVersion,
                 status: application.status,
                 compatibilityScore: application.compatibilityScore,
+                images: application.images,
                 createdAt: application.createdAt,
                 updatedAt: application.updatedAt,
             },
@@ -48,6 +49,7 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
 
         return Application.create({
             ...application,
+            images: application.images,
             status: application.status as ApplicationStatus,
             reviews: application.reviews.map((review) => ApplicationReview.create({
                 id: review.id,
@@ -85,6 +87,9 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
         const application = await this.prisma.application.findFirst({
             where: { applicantId },
             orderBy: { createdAt: 'desc' },
+            include: {
+                reviews: false,
+            }
         });
 
         if (!application) {
@@ -93,25 +98,25 @@ export class PrismaApplicationsRepository implements ApplicationsRepository {
 
         return Application.create({
             ...application,
+            images: [],
             reviews: [],
             status: application.status as ApplicationStatus,
         });
     }
 
-    async findByApplicantAndDogId(applicantId: string, dogId: string): Promise<Application | null> {
+    async findByApplicantAndDogId(applicantId: string, dogId: string): Promise<string | null> {
         const application = await this.prisma.application.findFirst({
             where: { applicantId, dogId },
+            select: {
+                id: true
+            }
         });
 
         if (!application) {
             return null;
         }
 
-        return Application.create({
-            ...application,
-            reviews: [],
-            status: application.status as ApplicationStatus,
-        });
+        return application.id;
     }
 
     async findAllByApplicantId(applicantId: string, page: number, limit: number): Promise<{ data: ApplicationFindAll[], total: number }> {

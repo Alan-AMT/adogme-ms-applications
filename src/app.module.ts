@@ -9,6 +9,10 @@ import { PrismaApplicantsRepository } from './infrastructure/prisma/applicants.r
 import { ApplicationsService } from './application/applications.service.js';
 import { ApplicationsRepository } from './domain/applications.repository.js';
 import { PrismaApplicationsRepository } from './infrastructure/prisma/applications.repository.prisma.js';
+import { ImagesPort } from './domain/storage.port.js';
+import { CloudStorageAdapter } from './infrastructure/cloud-storage/cloud.storage.adapter.js';
+import { EmailSenderPort } from './domain/email-sender.port.js';
+import { ResendEmailAdapter } from './infrastructure/email/resend-email.adapter.js';
 
 @Module({
   imports: [ConfigModule.forRoot()],
@@ -24,6 +28,14 @@ import { PrismaApplicationsRepository } from './infrastructure/prisma/applicatio
     {
       provide: ApplicationsRepository,
       useClass: PrismaApplicationsRepository,
+    },
+    {
+      provide: ImagesPort,
+      useClass: CloudStorageAdapter,
+    },
+    {
+      provide: EmailSenderPort,
+      useClass: ResendEmailAdapter,
     },
   ],
 })

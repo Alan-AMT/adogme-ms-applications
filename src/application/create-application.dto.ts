@@ -44,4 +44,7 @@ export class CreateApplicationDto {
     @IsNumber()
     compatibilityScore: number | null = null;
 
+    @IsOptional()
+    @IsNumber()
+    amountImages: number | null = null;
 }

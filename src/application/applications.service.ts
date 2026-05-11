@@ -3,18 +3,41 @@ import { ApplicationsRepository } from "../domain/applications.repository.js";
 import { CreateApplicationDto } from "./create-application.dto.js";
 import { UpdateApplicationStatusDto } from "./update-status.dto.js";
 import { Application, ApplicationStatus, ApplicationReview, ApplicationFindAll } from "../domain/application.entity.js";
+import { ImagesPort } from "../domain/storage.port.js";
+import { ConfigService } from "@nestjs/config";
 import { v4 as uuidv4 } from 'uuid';
+import { EmailSenderPort, EmailTemplate } from "../domain/email-sender.port.js";
 
 @Injectable()
 export class ApplicationsService {
     private readonly logger = new Logger(ApplicationsService.name);
 
-    constructor(private readonly repository: ApplicationsRepository) {}
+    constructor(
+        private readonly repository: ApplicationsRepository,
+        private readonly imagesPort: ImagesPort,
+        private readonly configService: ConfigService,
+        private readonly emailService: EmailSenderPort,
+    ) {}
     
-    async createApplication(createApplicationDto: CreateApplicationDto): Promise<Application> {
+    async createApplication(createApplicationDto: CreateApplicationDto): Promise<{ application: Application, uploadLinks: string[] }> {
         const date = new Date();
+        const applicationId = uuidv4();
+        let uploadLinks: string[] = [];
+        let imagePaths: string[] = [];
+
+        if (createApplicationDto.amountImages && createApplicationDto.amountImages > 0) {
+            const bucketName = this.configService.get<string>('BUCKET_NAME_UPLOADS') || 'adogme-applications-compressed';
+            const imageIds = Array.from({ length: createApplicationDto.amountImages }, (_, i) => `foto${i + 1}`);
+            
+            // Store the full paths in the application
+            imagePaths = imageIds.map(imageId => `https://storage.googleapis.com/${bucketName}/${applicationId}/${imageId}.jpg`);
+            
+            // Generate the signed URLs using the port
+            uploadLinks = await this.imagesPort.generateUploadLinks(applicationId, imageIds);
+        }
+
         const application = Application.create({
-            id: uuidv4(),
+            id: applicationId,
             applicantId: createApplicationDto.applicantId,
             dogId: createApplicationDto.dogId,
             shelterId: createApplicationDto.shelterId,
@@ -28,14 +51,21 @@ export class ApplicationsService {
             formVersion: 1,
             status: ApplicationStatus.PENDING,
             compatibilityScore: createApplicationDto.compatibilityScore,
+            images: imagePaths,
             reviews: [],
             createdAt: date,
             updatedAt: date,
         })
 
         await this.repository.create(application);
+        await this.emailService.sendEmail({
+            context: application,
+            template: EmailTemplate.APPLICATION_REQUEST_RECEIVED,
+            subject: "Nueva solicitud de adopción",
+            to: "alanx015@hotmail.com"
+        })
 
-        return application;
+        return { application, uploadLinks };
     }
 
     async getApplicationById(id: string): Promise<Application> {
@@ -129,10 +159,10 @@ export class ApplicationsService {
 
     async checkNotExistingRequest(applicantId: string, dogId: string): Promise<{ exists: boolean, applicationId?: string }> {
         this.logger.log(`Checking existing application for applicant: ${applicantId} and dog: ${dogId}`);
-        const application = await this.repository.findByApplicantAndDogId(applicantId, dogId);
+        const applicationId = await this.repository.findByApplicantAndDogId(applicantId, dogId);
         
-        if (application) {
-            return { exists: true, applicationId: application.id };
+        if (applicationId) {
+            return { exists: true, applicationId: applicationId };
         }
         
         return { exists: false };
