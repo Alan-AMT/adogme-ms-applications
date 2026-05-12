@@ -56,6 +56,35 @@ export class PrismaApplicantsRepository implements ApplicantsRepository {
         }
     }
 
+    async addFavoriteDog(applicantId: string, dogId: string): Promise<Applicant> {
+        try {
+            const raw = await this.prisma.applicant.update({
+                where: { id: applicantId },
+                data: { favoriteDogs: { push: dogId } }
+            });
+            return Applicant.create({ ...raw });
+        } catch (error) {
+            this.logger.error(`Failed to add favorite dog in database: ${error.message}`, error.stack);
+            throw new InternalServerErrorException('An error occurred while adding the favorite dog');
+        }
+    }
+
+    async removeFavoriteDog(applicantId: string, dogId: string): Promise<Applicant> {
+        try {
+            const current = await this.prisma.applicant.findUnique({ where: { id: applicantId } });
+            if (!current) throw new InternalServerErrorException('Applicant not found');
+
+            const raw = await this.prisma.applicant.update({
+                where: { id: applicantId },
+                data: { favoriteDogs: { set: current.favoriteDogs.filter(id => id !== dogId) } }
+            });
+            return Applicant.create({ ...raw });
+        } catch (error) {
+            this.logger.error(`Failed to remove favorite dog in database: ${error.message}`, error.stack);
+            throw new InternalServerErrorException('An error occurred while removing the favorite dog');
+        }
+    }
+
     async update(applicant: Applicant): Promise<void> {
         try {
             const {userId, createdAt, ...rest} = applicant;

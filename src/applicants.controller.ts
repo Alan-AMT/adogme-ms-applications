@@ -1,4 +1,19 @@
-import { Body, Controller, Post, Put, Patch, Param, HttpCode, HttpStatus, Logger, ValidationPipe, UsePipes, UseGuards, Get, ForbiddenException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Put,
+  Patch,
+  Param,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  ValidationPipe,
+  UsePipes,
+  UseGuards,
+  Get,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ApplicantsService } from './application/applicants.service.js';
 import { CreateApplicantDto } from './application/create-applicant.dto.js';
 import { UpdateApplicantDto } from './application/update-applicant.dto.js';
@@ -11,52 +26,91 @@ import { Roles } from './infrastructure/security/roles.decorator.js';
 @Controller('applicants-ms')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class ApplicantsController {
-    constructor(private readonly applicantsService: ApplicantsService) {}
+  constructor(private readonly applicantsService: ApplicantsService) {}
 
-    @UseGuards(UserAuthorizationGuard)
-    @Roles('applicant')
-    @Post('applicant')
-    @HttpCode(HttpStatus.CREATED)
-    async createApplicant(@Body() dto: CreateApplicantDto, @User('sub') userId: string): Promise<Applicant> {
-        return await this.applicantsService.createApplicant(dto, userId);
-    }
+  @UseGuards(UserAuthorizationGuard)
+  @Roles('applicant')
+  @Post('applicant')
+  @HttpCode(HttpStatus.CREATED)
+  async createApplicant(
+    @Body() dto: CreateApplicantDto,
+    @User('sub') userId: string,
+  ): Promise<Applicant> {
+    return await this.applicantsService.createApplicant(dto, userId);
+  }
 
-    @UseGuards(UserAuthorizationGuard)
-    @Roles('applicant')
-    @Put('applicant/:id')
-    async updateApplicant(
-        @Param('id') applicantId: string,
-        @User('sub') userId: string,
-        @Body() dto: UpdateApplicantDto
-    ): Promise<Applicant> {
-        return await this.applicantsService.updateApplicant(applicantId, userId, dto);
-    }
+  @UseGuards(UserAuthorizationGuard)
+  @Roles('applicant')
+  @Put('applicant/:id')
+  async updateApplicant(
+    @Param('id') applicantId: string,
+    @User('sub') userId: string,
+    @Body() dto: UpdateApplicantDto,
+  ): Promise<Applicant> {
+    return await this.applicantsService.updateApplicant(
+      applicantId,
+      userId,
+      dto,
+    );
+  }
 
-    @UseGuards(UserAuthorizationGuard)
-    @Roles('applicant')
-    @Get('applicant/me')
-    async getApplicantByUserId(@User('sub') userId: string): Promise<Applicant> {
-        return await this.applicantsService.getApplicantByUserId(userId);
-    }
+  @UseGuards(UserAuthorizationGuard)
+  @Roles('applicant')
+  @Get('applicant/me')
+  async getApplicantByUserId(@User('sub') userId: string): Promise<Applicant> {
+    return await this.applicantsService.getApplicantByUserId(userId);
+  }
 
-    @UseGuards(UserAuthorizationGuard)
-    @Roles('applicant', 'shelter')
-    @Get('applicant/:id')
-    async getApplicantById(@Param('id') applicantId: string): Promise<Applicant> {
-        return await this.applicantsService.getApplicantById(applicantId);
-    }
+  @UseGuards(UserAuthorizationGuard)
+  @Roles('applicant', 'shelter')
+  @Get('applicant/:id')
+  async getApplicantById(@Param('id') applicantId: string): Promise<Applicant> {
+    return await this.applicantsService.getApplicantById(applicantId);
+  }
 
-    @UseGuards(UserAuthorizationGuard)
-    @Roles('applicant')
-    @Patch('user/:userId/vector')
-    async updateVector(
-        @Param('userId') paramUserId: string,
-        @User('sub') tokenUserId: string,
-        @Body() dto: UpdateVectorDto
-    ): Promise<Applicant> {
-        if (paramUserId !== tokenUserId) {
-            throw new ForbiddenException('You do not have permission to update this applicant vector');
-        }
-        return await this.applicantsService.updateVector(paramUserId, dto.vector);
+  @UseGuards(UserAuthorizationGuard)
+  @Roles('applicant')
+  @Patch('applicant/:id/favorite-dogs/:dogId/add')
+  async addFavoriteDog(
+    @Param('id') applicantId: string,
+    @Param('dogId') dogId: string,
+    @User('sub') userId: string,
+  ): Promise<Applicant> {
+    return await this.applicantsService.addFavoriteDog(
+      applicantId,
+      userId,
+      dogId,
+    );
+  }
+
+  @UseGuards(UserAuthorizationGuard)
+  @Roles('applicant')
+  @Patch('applicant/:id/favorite-dogs/:dogId/remove')
+  async removeFavoriteDog(
+    @Param('id') applicantId: string,
+    @Param('dogId') dogId: string,
+    @User('sub') userId: string,
+  ): Promise<Applicant> {
+    return await this.applicantsService.removeFavoriteDog(
+      applicantId,
+      userId,
+      dogId,
+    );
+  }
+
+  @UseGuards(UserAuthorizationGuard)
+  @Roles('applicant')
+  @Patch('user/:userId/vector')
+  async updateVector(
+    @Param('userId') paramUserId: string,
+    @User('sub') tokenUserId: string,
+    @Body() dto: UpdateVectorDto,
+  ): Promise<Applicant> {
+    if (paramUserId !== tokenUserId) {
+      throw new ForbiddenException(
+        'You do not have permission to update this applicant vector',
+      );
     }
+    return await this.applicantsService.updateVector(paramUserId, dto.vector);
+  }
 }

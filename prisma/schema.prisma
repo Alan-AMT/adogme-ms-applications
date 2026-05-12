@@ -80,15 +80,17 @@ model ApplicationReview {
 }
 
 model Applicant {
-  id         String  @id @unique
-  userId     String  @unique
-  userName   String
-  address    String
-  postalCode String
-  phone      String?
-  email      String?
-  avatarUrl  String?
-  vector     Float[]
+  id           String   @id @unique
+  userId       String   @unique
+  userName     String
+  address      String
+  postalCode   String
+  phone        String?
+  email        String?
+  avatarUrl    String?
+  vector       Float[]
+  // dogIds
+  favoriteDogs String[] @default([])
 
   createdAt DateTime
   updatedAt DateTime

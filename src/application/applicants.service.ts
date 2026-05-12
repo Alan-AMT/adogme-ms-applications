@@ -1,4 +1,10 @@
-import { Injectable, Logger, InternalServerErrorException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateApplicantDto } from './create-applicant.dto.js';
 import { UpdateApplicantDto } from './update-applicant.dto.js';
@@ -7,130 +13,216 @@ import { ApplicantsRepository } from '../domain/applicants.repository.js';
 
 @Injectable()
 export class ApplicantsService {
-    private readonly logger = new Logger(ApplicantsService.name);
+  private readonly logger = new Logger(ApplicantsService.name);
 
-    constructor(
-        private readonly repository: ApplicantsRepository,
-    ) {}
+  constructor(private readonly repository: ApplicantsRepository) {}
 
-    async createApplicant(dto: CreateApplicantDto, userId: string): Promise<Applicant> {
-        try {
-            const id = uuidv4();
-            const now = new Date();
+  async createApplicant(
+    dto: CreateApplicantDto,
+    userId: string,
+  ): Promise<Applicant> {
+    try {
+      const id = uuidv4();
+      const now = new Date();
 
-            const applicantInstance = Applicant.create({
-                id,
-                userId: userId,
-                userName: dto.userName,
-                address: dto.address,
-                postalCode: dto.postalCode,
-                phone: dto.phone,
-                email: dto.email,
-                avatarUrl: dto.avatarUrl,
-                vector: dto.vector ?? [],
-                createdAt: now,
-                updatedAt: now,
-            });
+      const applicantInstance = Applicant.create({
+        id,
+        userId: userId,
+        userName: dto.userName,
+        address: dto.address,
+        postalCode: dto.postalCode,
+        phone: dto.phone,
+        email: dto.email,
+        avatarUrl: dto.avatarUrl,
+        vector: dto.vector ?? [],
+        favoriteDogs: [],
+        createdAt: now,
+        updatedAt: now,
+      });
 
-            await this.repository.create(applicantInstance);
+      await this.repository.create(applicantInstance);
 
-            return applicantInstance;
-        } catch (error) {
-            this.logger.error(`Failed to create applicant business logic: ${error.message}`, error.stack);
-            if (error instanceof InternalServerErrorException) {
-                throw error;
-            }
-            throw new InternalServerErrorException('Failed to process applicant creation');
-        }
+      return applicantInstance;
+    } catch (error) {
+      this.logger.error(
+        `Failed to create applicant business logic: ${error.message}`,
+        error.stack,
+      );
+      if (error instanceof InternalServerErrorException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Failed to process applicant creation',
+      );
     }
+  }
 
-    async updateApplicant(applicantId: string, tokenUserId: string, dto: UpdateApplicantDto): Promise<Applicant> {
-        try {
-            const currentApplicant = await this.repository.findById(applicantId);
-            
-            if (!currentApplicant) {
-                throw new NotFoundException(`Applicant with ID ${applicantId} not found`);
-            }
+  async updateApplicant(
+    applicantId: string,
+    tokenUserId: string,
+    dto: UpdateApplicantDto,
+  ): Promise<Applicant> {
+    try {
+      const currentApplicant = await this.repository.findById(applicantId);
 
-            if (currentApplicant.userId !== tokenUserId) {
-                throw new ForbiddenException('You do not have permission to update this applicant');
-            }
+      if (!currentApplicant) {
+        throw new NotFoundException(
+          `Applicant with ID ${applicantId} not found`,
+        );
+      }
 
-            const updatedApplicant = Applicant.create({
-                ...currentApplicant,
-                ...dto,
-                vector: dto.vector ?? [],
-                updatedAt: new Date(),
-                createdAt: currentApplicant.createdAt,
-            });
+      if (currentApplicant.userId !== tokenUserId) {
+        throw new ForbiddenException(
+          'You do not have permission to update this applicant',
+        );
+      }
 
-            await this.repository.update(updatedApplicant);
+      const updatedApplicant = Applicant.create({
+        ...currentApplicant,
+        ...dto,
+        vector: dto.vector ?? currentApplicant.vector,
+        updatedAt: new Date(),
+        createdAt: currentApplicant.createdAt,
+      });
 
-            return updatedApplicant;
-        } catch (error) {
-            this.logger.error(`Failed to update applicant business logic: ${error.message}`, error.stack);
-            if (error instanceof NotFoundException || error instanceof ForbiddenException) {
-                throw error;
-            }
-            throw new InternalServerErrorException('Failed to process applicant update');
-        }
+      await this.repository.update(updatedApplicant);
+
+      return updatedApplicant;
+    } catch (error) {
+      this.logger.error(
+        `Failed to update applicant business logic: ${error.message}`,
+        error.stack,
+      );
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Failed to process applicant update',
+      );
     }
+  }
 
-    async getApplicantById(applicantId: string): Promise<Applicant> {
-        try {
-            const applicant = await this.repository.findById(applicantId);
-            if (!applicant) {
-                throw new NotFoundException(`Applicant with ID ${applicantId} not found`);
-            }
-            return applicant;
-        } catch (error) {
-            this.logger.error(`Failed to get applicant by id: ${error.message}`, error.stack);
-            if (error instanceof NotFoundException) {
-                throw error;
-            }
-            throw new InternalServerErrorException('Failed to fetch applicant');
-        }
+  async getApplicantById(applicantId: string): Promise<Applicant> {
+    try {
+      const applicant = await this.repository.findById(applicantId);
+      if (!applicant) {
+        throw new NotFoundException(
+          `Applicant with ID ${applicantId} not found`,
+        );
+      }
+      return applicant;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get applicant by id: ${error.message}`,
+        error.stack,
+      );
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch applicant');
     }
+  }
 
-    async getApplicantByUserId(userId: string): Promise<Applicant> {
-        try {
-            const applicant = await this.repository.findByUserId(userId);
-            if (!applicant) {
-                throw new NotFoundException(`Applicant for user ${userId} not found`);
-            }
-            return applicant;
-        } catch (error) {
-            this.logger.error(`Failed to get applicant by user id: ${error.message}`, error.stack);
-            if (error instanceof NotFoundException) {
-                throw error;
-            }
-            throw new InternalServerErrorException('Failed to fetch applicant');
-        }
+  async getApplicantByUserId(userId: string): Promise<Applicant> {
+    try {
+      const applicant = await this.repository.findByUserId(userId);
+      if (!applicant) {
+        throw new NotFoundException(`Applicant for user ${userId} not found`);
+      }
+      return applicant;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get applicant by user id: ${error.message}`,
+        error.stack,
+      );
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to fetch applicant');
     }
+  }
 
-    async updateVector(userId: string, vector: number[]): Promise<Applicant> {
-        try {
-            const applicant = await this.repository.findByUserId(userId);
-            
-            if (!applicant) {
-                throw new NotFoundException(`Applicant for user ${userId} not found`);
-            }
+  async addFavoriteDog(applicantId: string, tokenUserId: string, dogId: string): Promise<Applicant> {
+    try {
+      const applicant = await this.repository.findById(applicantId);
 
-            const updatedApplicant = Applicant.create({
-                ...applicant,
-                vector,
-                updatedAt: new Date(),
-            });
+      if (!applicant) {
+        throw new NotFoundException(`Applicant with ID ${applicantId} not found`);
+      }
 
-            await this.repository.update(updatedApplicant);
+      if (applicant.userId !== tokenUserId) {
+        throw new ForbiddenException('You do not have permission to update this applicant');
+      }
 
-            return updatedApplicant;
-        } catch (error) {
-            this.logger.error(`Failed to update applicant vector: ${error.message}`, error.stack);
-            if (error instanceof NotFoundException) {
-                throw error;
-            }
-            throw new InternalServerErrorException('Failed to process vector update');
-        }
+      if (applicant.favoriteDogs.includes(dogId)) {
+        return applicant;
+      }
+
+      return await this.repository.addFavoriteDog(applicantId, dogId);
+    } catch (error) {
+      this.logger.error(`Failed to add favorite dog: ${error.message}`, error.stack);
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to add favorite dog');
     }
+  }
+
+  async removeFavoriteDog(applicantId: string, tokenUserId: string, dogId: string): Promise<Applicant> {
+    try {
+      const applicant = await this.repository.findById(applicantId);
+
+      if (!applicant) {
+        throw new NotFoundException(`Applicant with ID ${applicantId} not found`);
+      }
+
+      if (applicant.userId !== tokenUserId) {
+        throw new ForbiddenException('You do not have permission to update this applicant');
+      }
+
+      if (!applicant.favoriteDogs.includes(dogId)) {
+        return applicant;
+      }
+
+      return await this.repository.removeFavoriteDog(applicantId, dogId);
+    } catch (error) {
+      this.logger.error(`Failed to remove favorite dog: ${error.message}`, error.stack);
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to remove favorite dog');
+    }
+  }
+
+  async updateVector(userId: string, vector: number[]): Promise<Applicant> {
+    try {
+      const applicant = await this.repository.findByUserId(userId);
+
+      if (!applicant) {
+        throw new NotFoundException(`Applicant for user ${userId} not found`);
+      }
+
+      const updatedApplicant = Applicant.create({
+        ...applicant,
+        vector,
+        updatedAt: new Date(),
+      });
+
+      await this.repository.update(updatedApplicant);
+
+      return updatedApplicant;
+    } catch (error) {
+      this.logger.error(
+        `Failed to update applicant vector: ${error.message}`,
+        error.stack,
+      );
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to process vector update');
+    }
+  }
 }
