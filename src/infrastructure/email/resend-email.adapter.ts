@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
 import { EmailSenderPort, SendEmailParams, EmailTemplate } from '../../domain/email-sender.port.js';
 import { ConfigService } from '@nestjs/config';
+import Handlebars from 'handlebars';
+import { applicationRequestReceivedTemplate } from './templates/application-request-received.template.js';
 
 
 @Injectable()
@@ -50,16 +52,7 @@ export class ResendEmailAdapter implements EmailSenderPort {
     // or react-email to generate this HTML dynamically based on the context.
     switch (template) {
       case 'application-request-received':
-        return `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>¡Hola ${context.applicantName || 'Adopter'}!</h2>
-            <p>Hemos recibido tu solicitud de adopción para el perrito <strong>${context.dogName || 'que elegiste'}</strong>.</p>
-            <p>El refugio revisará tu solicitud pronto y te contactaremos con más detalles.</p>
-            <br />
-            <p>Saludos,</p>
-            <p>El equipo de Adogme</p>
-          </div>
-        `;
+        return Handlebars.compile(applicationRequestReceivedTemplate)(context);
       case 'application-approved':
         return `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
