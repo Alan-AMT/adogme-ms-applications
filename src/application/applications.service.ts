@@ -59,7 +59,7 @@ export class ApplicationsService {
 
         await this.repository.create(application);
         await this.emailService.sendEmail({
-            context: application,
+            context: this.buildApplicationReceivedContext(application),
             template: EmailTemplate.APPLICATION_REQUEST_RECEIVED,
             subject: "Nueva solicitud de adopción",
             to: "alanx015@hotmail.com"
@@ -307,5 +307,102 @@ export class ApplicationsService {
         }
 
         return buckets.map(b => ({ label: b.label, value: b.value }));
+    }
+
+    private buildApplicationReceivedContext(application: Application): Record<string, any> {
+        const fd = application.formData || {};
+        const vivienda = fd.vivienda || {};
+        const entorno = fd.entorno || {};
+        const rutina = fd.rutina || {};
+        const mascotas = fd.mascotasActuales || {};
+        const experiencia = fd.experienciaPrevia || {};
+
+        const viviendaTipoLabels: Record<string, string> = {
+            casa: 'Casa', departamento: 'Departamento', condominio: 'Condominio', otro: 'Otro',
+        };
+        const viviendaTenenciaLabels: Record<string, string> = {
+            propia: 'Propia', rentada: 'Rentada', familiar: 'Familiar',
+        };
+        const dondeDormiriaLabels: Record<string, string> = {
+            cama_dueno: 'Cama del dueño', cama_propia: 'Cama propia',
+            area_designada: 'Área designada', exterior: 'Exterior',
+        };
+        const actividadFisicaLabels: Record<string, string> = {
+            sedentario: 'Sedentario', moderado: 'Moderado', activo: 'Activo', muy_activo: 'Muy activo',
+        };
+        const actividadLabels: Record<string, string> = {
+            juegos: 'Juegos', caminatas: 'Caminatas', compania_tranquila: 'Compañía tranquila',
+            entrenamiento: 'Entrenamiento', natacion: 'Natación', otro: 'Otro',
+        };
+
+        const score = application.compatibilityScore;
+        const hasScore = score != null;
+        let scoreBg = '#fef9c3', scoreColor = '#eab308', scoreLabel = 'Compatibilidad media';
+        if (hasScore) {
+            if (score >= 80) { scoreBg = '#dcfce7'; scoreColor = '#16a34a'; scoreLabel = 'Alta compatibilidad'; }
+            else if (score < 60) { scoreBg = '#fee2e2'; scoreColor = '#ef4444'; scoreLabel = 'Compatibilidad baja'; }
+        }
+
+        const fotosCount = Array.isArray(vivienda.fotosVivienda) ? vivienda.fotosVivienda.length : 0;
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://adogme.com';
+
+        return {
+            refugioNombre: application.shelterName,
+            adoptanteNombre: application.applicantName,
+            perroNombre: application.dogName,
+            perroFoto: application.dogImage,
+            fechaSolicitudFormatted: new Date(application.createdAt).toLocaleDateString('es-MX', {
+                day: 'numeric', month: 'long', year: 'numeric',
+            }),
+            correo: fd.correo,
+            telefono: fd.telefono,
+            nombreCompleto: fd.nombreCompleto,
+            edad: fd.edad,
+            ocupacion: fd.ocupacion,
+            direccion: fd.direccion,
+            redesSociales: fd.redesSociales || null,
+            viviendaTipoLabel: viviendaTipoLabels[vivienda.tipo] ?? vivienda.tipo,
+            viviendaTenenciaLabel: viviendaTenenciaLabels[vivienda.tenencia] ?? vivienda.tenencia,
+            esRentada: vivienda.tenencia === 'rentada',
+            viviendaPermiteAnimales: vivienda.permiteAnimales ?? false,
+            viviendaTieneJardin: vivienda.tieneJardin ?? false,
+            viviendaTamanoJardin: vivienda.tamanoJardinM2,
+            viviendaTieneRejaOCerca: vivienda.tieneRejaOCerca ?? false,
+            numFotosViviendaLabel: fotosCount > 0 ? `${fotosCount} foto${fotosCount > 1 ? 's' : ''}` : null,
+            entornoQuienesViven: entorno.quienesViven,
+            entornoTodosDeAcuerdo: entorno.todosDeAcuerdo ?? false,
+            entornoHayNinos: entorno.hayNinos ?? false,
+            entornoHayAlergicos: entorno.hayAlergicos ?? false,
+            rutinaHorasSolo: rutina.horasSolo,
+            rutinaDondePermaneceSolo: rutina.dondePermaneceSolo,
+            rutinaDondeDormiriaLabel: dondeDormiriaLabels[rutina.dondeDormiria] ?? rutina.dondeDormiria,
+            rutinaActividadFisicaLabel: actividadFisicaLabels[rutina.actividadFisica] ?? rutina.actividadFisica,
+            actividadesPlaneadas: (rutina.actividadesPlaneadas || []).map((a: string) => actividadLabels[a] ?? a),
+            tieneMascotas: mascotas.tiene ?? false,
+            mascotasCuantasYCuales: mascotas.cuantasYCuales,
+            mascotasEdades: mascotas.edades,
+            mascotasEsterilizadasShown: mascotas.tiene ?? false,
+            mascotasEsterilizadas: mascotas.estanEsterilizadas ?? false,
+            mascotasConvivencia: mascotas.descripcionConvivencia,
+            experienciaPreviaTuvo: experiencia.tuvo ?? false,
+            experienciaQuePaso: experiencia.quePaso,
+            motivacion: fd.motivacion,
+            siMudanza: fd.siMudanza,
+            siComportamientoNoEsperado: fd.siComportamientoNoEsperado,
+            situacionesParaDevolver: fd.situacionesParaDevolver,
+            capacidadEconomica: fd.capacidadEconomica ?? false,
+            cuidadosMedicos: fd.cuidadosMedicos,
+            aceptaAlimentacionVeterinaria: fd.aceptaAlimentacionVeterinaria ?? false,
+            aceptaNoAbandono: fd.aceptaNoAbandono ?? false,
+            aceptaContactarRefugio: fd.aceptaContactarRefugio ?? false,
+            aceptaSeguimiento: fd.aceptaSeguimiento ?? false,
+            aceptaInfoVeridica: fd.aceptaInfoVeridica ?? false,
+            hasCompatibilityScore: hasScore,
+            compatibilityScore: score,
+            compatibilityScoreBg: scoreBg,
+            compatibilityScoreColor: scoreColor,
+            compatibilityScoreLabel: scoreLabel,
+            reviewUrl: `${frontendUrl}/shelter/applications/${application.id}`,
+        };
     }
 }
