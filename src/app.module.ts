@@ -13,6 +13,8 @@ import { ImagesPort } from './domain/storage.port.js';
 import { CloudStorageAdapter } from './infrastructure/cloud-storage/cloud.storage.adapter.js';
 import { EmailSenderPort } from './domain/email-sender.port.js';
 import { ResendEmailAdapter } from './infrastructure/email/resend-email.adapter.js';
+import { SheltersMSPort } from './domain/shelters-ms.port.js';
+import { SheltersMSAdapter } from './infrastructure/shelters-ms/shelters-ms.adapter.js';
 
 @Module({
   imports: [ConfigModule.forRoot()],
@@ -36,6 +38,10 @@ import { ResendEmailAdapter } from './infrastructure/email/resend-email.adapter.
     {
       provide: EmailSenderPort,
       useClass: ResendEmailAdapter,
+    },
+    {
+      provide: SheltersMSPort,
+      useClass: SheltersMSAdapter,
     },
   ],
 })

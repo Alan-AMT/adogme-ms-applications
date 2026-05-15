@@ -4,6 +4,9 @@ import { EmailSenderPort, SendEmailParams, EmailTemplate } from '../../domain/em
 import { ConfigService } from '@nestjs/config';
 import Handlebars from 'handlebars';
 import { applicationRequestReceivedTemplate } from './templates/application-request-received.template.js';
+import { applicationCreatedConfirmationTemplate } from './templates/application-created-confirmation.template.js';
+import { applicationCancelledShelterTemplate } from './templates/application-cancelled-shelter.template.js';
+import { applicationStatusUpdatedTemplate } from './templates/application-status-updated.template.js';
 
 
 @Injectable()
@@ -53,6 +56,12 @@ export class ResendEmailAdapter implements EmailSenderPort {
     switch (template) {
       case 'application-request-received':
         return Handlebars.compile(applicationRequestReceivedTemplate)(context);
+      case 'application-created-confirmation':
+        return Handlebars.compile(applicationCreatedConfirmationTemplate)(context);
+      case 'application-cancelled-shelter':
+        return Handlebars.compile(applicationCancelledShelterTemplate)(context);
+      case 'application-status-updated':
+        return Handlebars.compile(applicationStatusUpdatedTemplate)(context);
       case 'application-approved':
         return `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
