@@ -29,7 +29,7 @@ export class ResendEmailAdapter implements EmailSenderPort {
       const htmlContent = this.getHtmlForTemplate(params.template, params.context);
 
       const { data, error } = await this.resend.emails.send({
-        from: 'Adogme <onboarding@resend.dev>', // Update this to your verified domain later
+        from: 'Adogme <no-reply@adogme.org>', // Update this to your verified domain later
         to: params.to,
         subject: params.subject,
         html: htmlContent,

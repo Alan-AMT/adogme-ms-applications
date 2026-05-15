@@ -26,7 +26,8 @@ export class ApplicationsService {
         let imagePaths: string[] = [];
 
         if (createApplicationDto.amountImages && createApplicationDto.amountImages > 0) {
-            const bucketName = this.configService.get<string>('BUCKET_NAME_PUBLIC') || 'adogme-applications-compressed';
+            // const bucketName = this.configService.get<string>('BUCKET_NAME_PUBLIC') || 'adogme-applications-compressed';
+            const bucketName = 'adogme-applications-compressed';
             const imageIds = Array.from({ length: createApplicationDto.amountImages }, (_, i) => `foto${i + 1}`);
             
             // Store the full paths in the application

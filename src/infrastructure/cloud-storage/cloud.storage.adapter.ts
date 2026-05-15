@@ -15,7 +15,8 @@ export class CloudStorageAdapter implements ImagesPort {
         }
         try {
             // The ID of your GCS bucket
-            const BUCKET_NAME_UPLOADS = this.configService.get<string>('BUCKET_NAME_UPLOADS');
+            // const BUCKET_NAME_UPLOADS = this.configService.get<string>('BUCKET_NAME_UPLOADS');
+            const BUCKET_NAME_UPLOADS = 'adogme-applications'
             
             if (!BUCKET_NAME_UPLOADS) {
                 throw new Error("BUCKET_NAME_UPLOADS is not defined in the environment config")
