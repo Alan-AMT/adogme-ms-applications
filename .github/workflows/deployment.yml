@@ -51,4 +51,4 @@ jobs:
           RESEND_API_KEY=RESEND_API_KEY:latest
         # Ajustar según necesidades de seguridad
         # flags: '--allow-unauthenticated' 
-        flags: '--no-allow-unauthenticated'
+        flags: '--no-allow-unauthenticated --remove-secrets=BUCKET_NAME_PUBLIC,BUCKET_NAME_UPLOADS'
