@@ -18,7 +18,7 @@ import { ImagesPort } from '../domain/storage.port.js';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { EmailSenderPort, EmailTemplate } from '../domain/email-sender.port.js';
-import { SheltersMSPort } from 'src/domain/shelters-ms.port.js';
+import { SheltersMSPort } from '../domain/shelters-ms.port.js';
 
 @Injectable()
 export class ApplicationsService {
@@ -216,9 +216,16 @@ export class ApplicationsService {
 
     await this.emailService.sendEmail({
       to: application.applicantEmail,
-      subject: this.buildStatusEmailSubject(updateDto.status, application.dogName),
+      subject: this.buildStatusEmailSubject(
+        updateDto.status,
+        application.dogName,
+      ),
       template: EmailTemplate.APPLICATION_STATUS_UPDATED,
-      context: this.buildStatusUpdatedContext(application, updateDto.status, updateDto.note),
+      context: this.buildStatusUpdatedContext(
+        application,
+        updateDto.status,
+        updateDto.note,
+      ),
     });
 
     this.logger.debug(
@@ -226,7 +233,10 @@ export class ApplicationsService {
     );
   }
 
-  private buildStatusEmailSubject(status: ApplicationStatus, dogName: string): string {
+  private buildStatusEmailSubject(
+    status: ApplicationStatus,
+    dogName: string,
+  ): string {
     const subjects: Record<string, string> = {
       [ApplicationStatus.IN_REVIEW]: `Tu solicitud para adoptar a ${dogName} está en revisión`,
       [ApplicationStatus.APPROVED]: `¡Tu solicitud para adoptar a ${dogName} fue aprobada!`,
@@ -241,7 +251,16 @@ export class ApplicationsService {
     newStatus: ApplicationStatus,
     note?: string,
   ): Record<string, any> {
-    const configs: Record<string, { title: string; statusLabel: string; badgeClass: string; messageBoxClass: string; message: string }> = {
+    const configs: Record<
+      string,
+      {
+        title: string;
+        statusLabel: string;
+        badgeClass: string;
+        messageBoxClass: string;
+        message: string;
+      }
+    > = {
       [ApplicationStatus.IN_REVIEW]: {
         title: 'Tu solicitud está siendo revisada',
         statusLabel: 'En revisión',

@@ -18,7 +18,7 @@ import { ApplicantsService } from './application/applicants.service.js';
 import { CreateApplicantDto } from './application/create-applicant.dto.js';
 import { UpdateApplicantDto } from './application/update-applicant.dto.js';
 import { UpdateVectorDto } from './application/update-vector.dto.js';
-import { Applicant } from 'src/domain/applicant.entity.js';
+import { Applicant } from './domain/applicant.entity.js';
 import { User } from './infrastructure/security/user.decorator.js';
 import { UserAuthorizationGuard } from './infrastructure/security/user.authorization.guard.js';
 import { Roles } from './infrastructure/security/roles.decorator.js';
